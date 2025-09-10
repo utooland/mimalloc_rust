@@ -1,6 +1,16 @@
 use std::env;
 
 fn main() {
+    let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target_os not defined!");
+    let target_family = env::var("CARGO_CFG_TARGET_FAMILY").expect("target_family not defined!");
+    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").expect("target_arch not defined!");
+
+    if target_family == "wasm" && target_os == "unknown" {
+        println!("cargo:rustc-link-search=native=libs");
+        println!("cargo:rustc-link-lib=static=mimalloc-ww");
+        return;
+    }
+
     let mut build = cc::Build::new();
 
     let version = if env::var("CARGO_FEATURE_V3").is_ok() {
@@ -12,10 +22,6 @@ fn main() {
     build.include(format!("c_src/mimalloc/{version}/include"));
     build.include(format!("c_src/mimalloc/{version}/src"));
     build.file(format!("c_src/mimalloc/{version}/src/static.c"));
-
-    let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target_os not defined!");
-    let target_family = env::var("CARGO_CFG_TARGET_FAMILY").expect("target_family not defined!");
-    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").expect("target_arch not defined!");
 
     if target_family != "windows" {
         build.flag("-Wno-error=date-time");
