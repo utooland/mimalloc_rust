@@ -63,6 +63,10 @@ fn main() {
         build.cpp(true);
     }
 
+    if target_family == "wasm" && target_os == "unknown" {
+        build.define("__wasi__", "1");
+    }
+
     build.compile("mimalloc");
 
     // on armv6 we need to link with libatomic
