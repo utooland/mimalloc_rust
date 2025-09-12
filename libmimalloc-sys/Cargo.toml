@@ -28,6 +28,11 @@ exclude = [
 cty = { version = "0.2", optional = true }
 libc = "0.2"
 
+[target.'cfg(all(target_family = "wasm", target_os = "unknown"))'.dependencies]
+js-sys = "0.3.78"
+web-sys = { version = "0.3.78", features = ["WorkerGlobalScope", "Crypto"] }
+wasm-bindgen = { version = "0.2.101" }
+
 [build-dependencies]
 cc = "1.0"
 

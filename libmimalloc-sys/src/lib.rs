@@ -1,8 +1,13 @@
-#![no_std]
+#![cfg_attr(not(all(target_family = "wasm", target_os = "unknown")), no_std)]
 // Copyright 2019 Octavian Oncescu
 
+#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 use core::ffi::c_void;
 
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+use std::ffi::c_void;
+
+#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 extern crate libc;
 
 #[cfg(feature = "extended")]
@@ -66,6 +71,9 @@ extern "C" {
     /// The pointer `p` must have been allocated before (or be null).
     pub fn mi_free(p: *mut c_void);
 }
+
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+mod wasm_shim;
 
 #[cfg(test)]
 mod tests {
