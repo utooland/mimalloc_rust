@@ -1,6 +1,7 @@
 [submodule "libmimalloc-sys/c_src/mimalloc/v2"]
 	path = libmimalloc-sys/c_src/mimalloc/v2
-	url = https://github.com/microsoft/mimalloc
+	url = https://github.com/utooland/mimalloc
 [submodule "libmimalloc-sys/c_src/mimalloc/v3"]
 	path = libmimalloc-sys/c_src/mimalloc/v3
-	url = https://github.com/microsoft/mimalloc
+	url = https://github.com/utooland/mimalloc
+  branch = v3.1.5-wasm

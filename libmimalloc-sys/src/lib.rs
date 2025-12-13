@@ -1,7 +1,56 @@
-#![no_std]
+#![cfg_attr(not(all(target_arch = "wasm32", target_os = "unknown")), no_std)]
 // Copyright 2019 Octavian Oncescu
 
 use core::ffi::c_void;
+
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+extern crate std;
+
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+mod wasm_tls {
+    use std::ptr;
+
+    // Opaque type for C
+    #[repr(C)]
+    pub struct mi_heap_t {
+        _private: [u8; 0],
+    }
+
+    #[cfg(not(target_feature = "atomics"))]
+    static mut MI_HEAP_DEFAULT: *mut mi_heap_t = ptr::null_mut();
+
+    #[cfg(target_feature = "atomics")]
+    thread_local! {
+        static MI_HEAP_DEFAULT: std::cell::RefCell<*mut mi_heap_t> = std::cell::RefCell::new(ptr::null_mut());
+    }
+
+    #[no_mangle]
+    pub extern "C" fn rust_mi_get_default_heap() -> *mut mi_heap_t {
+        #[cfg(not(target_feature = "atomics"))]
+        unsafe { MI_HEAP_DEFAULT }
+
+        #[cfg(target_feature = "atomics")]
+        MI_HEAP_DEFAULT.with(|heap| *heap.borrow())
+    }
+
+    #[no_mangle]
+    pub extern "C" fn rust_mi_set_default_heap(heap: *mut mi_heap_t) {
+        #[cfg(not(target_feature = "atomics"))]
+        unsafe { MI_HEAP_DEFAULT = heap; }
+
+        #[cfg(target_feature = "atomics")]
+        MI_HEAP_DEFAULT.with(|h| *h.borrow_mut() = heap);
+    }
+    
+    #[no_mangle]
+    pub extern "C" fn rust_mi_get_thread_id() -> usize {
+        #[cfg(not(target_feature = "atomics"))]
+        return ptr::addr_of!(MI_HEAP_DEFAULT) as usize;
+
+        #[cfg(target_feature = "atomics")]
+        return MI_HEAP_DEFAULT.with(|heap| heap.as_ptr() as usize);
+    }
+}
 
 extern crate libc;
 
