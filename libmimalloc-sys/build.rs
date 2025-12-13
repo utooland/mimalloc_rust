@@ -17,6 +17,25 @@ fn main() {
     let target_family = env::var("CARGO_CFG_TARGET_FAMILY").expect("target_family not defined!");
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").expect("target_arch not defined!");
 
+    if target_arch == "wasm32" && target_os == "unknown" {
+        build.include("c_src/mimalloc/include_wasm");
+        build.file("c_src/mimalloc/include_wasm/shim.c");
+        build.define("CLOCK_MONOTONIC", "1");
+        build.define("MI_USE_RUST_TLS", "1");
+        build.define("MI_USE_PTHREADS", "1");
+
+        let target_features = env::var("CARGO_CFG_TARGET_FEATURE").unwrap_or_default();
+        if target_features.contains("atomics") {
+            build.flag("-matomics");
+        }
+        if target_features.contains("bulk-memory") {
+            build.flag("-mbulk-memory");
+        }
+        if target_features.contains("mutable-globals") {
+            build.flag("-mmutable-globals");
+        }
+    }
+
     if target_family != "windows" {
         build.flag("-Wno-error=date-time");
     }
